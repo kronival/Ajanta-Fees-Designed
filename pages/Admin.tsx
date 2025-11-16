@@ -3,9 +3,11 @@ import { api } from '../services/api';
 import { FeeStructure, User, UserRole } from '../types';
 import { Save, Plus, Trash2, Edit2, Shield, User as UserIcon, Key, X } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
+import { useToast } from '../components/ToastContext';
 
 export const Admin: React.FC = () => {
   const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'fees' | 'users'>('fees');
   
   // Fees State
@@ -31,24 +33,39 @@ export const Admin: React.FC = () => {
   }, [activeTab]);
 
   const loadFees = async () => {
-    setLoadingFees(true);
-    const f = await api.getFeesConfig();
-    setFees(f);
-    setLoadingFees(false);
+    try {
+      setLoadingFees(true);
+      const f = await api.getFeesConfig();
+      setFees(f);
+    } catch (error: any) {
+      showToast(error.message || "Failed to load fee configuration", 'error');
+    } finally {
+      setLoadingFees(false);
+    }
   };
 
   const loadUsers = async () => {
-    setLoadingUsers(true);
-    const u = await api.getUsers();
-    setUsers(u);
-    setLoadingUsers(false);
+    try {
+      setLoadingUsers(true);
+      const u = await api.getUsers();
+      setUsers(u);
+    } catch (error: any) {
+      showToast(error.message || "Failed to load users", 'error');
+    } finally {
+      setLoadingUsers(false);
+    }
   };
 
   const handleFeeUpdate = async (index: number, newVal: number) => {
-      const updated = [...fees];
-      updated[index].annualFee = newVal;
-      setFees(updated);
-      await api.updateFeeConfig(updated[index]);
+      try {
+        const updated = [...fees];
+        updated[index].annualFee = newVal;
+        setFees(updated);
+        await api.updateFeeConfig(updated[index]);
+        showToast("Fee updated successfully", 'success');
+      } catch (error: any) {
+        showToast(error.message || "Failed to update fee", 'error');
+      }
   };
 
   const openUserModal = (u?: User) => {
@@ -63,8 +80,8 @@ export const Admin: React.FC = () => {
   };
 
   const handleSaveUser = async () => {
-      if (!userForm.name || !userForm.username) return alert("Name and Username are required");
-      if (!editingUser && !userForm.password) return alert("Password is required for new users");
+      if (!userForm.name || !userForm.username) return showToast("Name and Username are required", 'error');
+      if (!editingUser && !userForm.password) return showToast("Password is required for new users", 'error');
 
       try {
           await api.saveUser({
@@ -75,16 +92,22 @@ export const Admin: React.FC = () => {
               password: userForm.password
           });
           setIsUserModalOpen(false);
+          showToast(editingUser ? "User updated" : "User created", 'success');
           loadUsers();
       } catch (e: any) {
-          alert(e.message);
+          showToast(e.message || "Failed to save user", 'error');
       }
   };
 
   const handleDeleteUser = async (id: string) => {
       if (window.confirm("Are you sure you want to delete this user?")) {
-          await api.deleteUser(id);
-          loadUsers();
+          try {
+            await api.deleteUser(id);
+            showToast("User deleted", 'success');
+            loadUsers();
+          } catch (error: any) {
+            showToast(error.message || "Failed to delete user", 'error');
+          }
       }
   };
 
@@ -118,7 +141,7 @@ export const Admin: React.FC = () => {
             <div className="animate-in fade-in slide-in-from-bottom-2">
                 <p className="text-slate-500 mb-6">Set base annual fees for the current academic year. Updates affect new admissions defaults.</p>
                 {loadingFees ? (
-                    <div>Loading...</div>
+                    <div className="p-8 flex justify-center"><span className="material-symbols-outlined animate-spin text-3xl text-primary">progress_activity</span></div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {fees.map((fee, idx) => (

@@ -4,6 +4,8 @@ import { INITIAL_STUDENTS, DEFAULT_FEES, INITIAL_PAYMENTS, MOCK_USERS, ACADEMIC_
 // --- CONFIGURATION ---
 const USE_MOCK_DATA = true; // Set to FALSE to use Google Apps Script
 const GOOGLE_SCRIPT_URL = "YOUR_DEPLOYED_WEB_APP_URL_HERE"; 
+const SIMULATE_ERRORS = true; // Toggle simulated backend errors
+const ERROR_RATE = 0.15; // 15% chance of failure
 // ---------------------
 
 // LocalStorage Keys
@@ -12,8 +14,13 @@ const LS_FEES = 'sfm_fees';
 const LS_PAYMENTS = 'sfm_payments';
 const LS_USERS = 'sfm_users';
 
-// Helper to simulate network delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Helper to simulate network delay and errors
+const simulateNetwork = async (ms: number) => {
+  await new Promise(resolve => setTimeout(resolve, ms));
+  if (SIMULATE_ERRORS && Math.random() < ERROR_RATE) {
+    throw new Error("Network Error: Failed to connect to server (Simulated)");
+  }
+};
 
 const getLocalUsers = (): User[] => {
   const stored = localStorage.getItem(LS_USERS);
@@ -25,7 +32,7 @@ const getLocalUsers = (): User[] => {
 export const api = {
   // --- USERS ---
   login: async (username: string, pass: string): Promise<User | null> => {
-    await delay(500);
+    await simulateNetwork(500);
     const users = getLocalUsers();
     const user = users.find(u => u.username === username && u.password === pass);
     if (user) {
@@ -36,12 +43,12 @@ export const api = {
   },
 
   getUsers: async (): Promise<User[]> => {
-    await delay(300);
+    await simulateNetwork(300);
     return getLocalUsers();
   },
 
   saveUser: async (user: User): Promise<void> => {
-    await delay(300);
+    await simulateNetwork(300);
     const users = getLocalUsers();
     
     if (user.id) {
@@ -64,7 +71,7 @@ export const api = {
   },
 
   deleteUser: async (id: string): Promise<void> => {
-      await delay(300);
+      await simulateNetwork(300);
       const users = getLocalUsers();
       const filtered = users.filter(u => u.id !== id);
       if (filtered.length === users.length) return; // No change
@@ -73,7 +80,7 @@ export const api = {
 
   // --- STUDENTS ---
   getStudents: async (): Promise<Student[]> => {
-    await delay(300);
+    await simulateNetwork(300);
     if (USE_MOCK_DATA) {
       const stored = localStorage.getItem(LS_STUDENTS);
       if (!stored) {
@@ -83,27 +90,29 @@ export const api = {
       return JSON.parse(stored);
     } else {
       const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getStudents`);
+      if (!res.ok) throw new Error(`Server error: ${res.statusText}`);
       return await res.json();
     }
   },
 
   addStudent: async (student: Student): Promise<void> => {
-    await delay(300);
+    await simulateNetwork(300);
     if (USE_MOCK_DATA) {
       const students = await api.getStudents();
       if (students.find(s => s.id === student.id)) throw new Error("Admission Number already exists");
       students.push(student);
       localStorage.setItem(LS_STUDENTS, JSON.stringify(students));
     } else {
-       await fetch(GOOGLE_SCRIPT_URL, {
+       const res = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify({ action: 'addStudent', data: student })
       });
+      if (!res.ok) throw new Error("Failed to add student");
     }
   },
 
   updateStudent: async (student: Student): Promise<void> => {
-    await delay(300);
+    await simulateNetwork(300);
     if (USE_MOCK_DATA) {
       const students = await api.getStudents();
       const index = students.findIndex(s => s.id === student.id);
@@ -112,30 +121,32 @@ export const api = {
         localStorage.setItem(LS_STUDENTS, JSON.stringify(students));
       }
     } else {
-       await fetch(GOOGLE_SCRIPT_URL, {
+       const res = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         body: JSON.stringify({ action: 'updateStudent', data: student })
       });
+      if (!res.ok) throw new Error("Failed to update student");
     }
   },
 
   deleteStudent: async (id: string): Promise<void> => {
-    await delay(300);
+    await simulateNetwork(300);
     if (USE_MOCK_DATA) {
         const students = await api.getStudents();
         const filtered = students.filter(s => s.id !== id);
         localStorage.setItem(LS_STUDENTS, JSON.stringify(filtered));
     } else {
-        await fetch(GOOGLE_SCRIPT_URL, {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ action: 'deleteStudent', data: { id } })
         });
+        if (!res.ok) throw new Error("Failed to delete student");
     }
   },
 
   // --- FEES CONFIG ---
   getFeesConfig: async (): Promise<FeeStructure[]> => {
-    await delay(200);
+    await simulateNetwork(200);
     if (USE_MOCK_DATA) {
       const stored = localStorage.getItem(LS_FEES);
       if (!stored) {
@@ -145,11 +156,13 @@ export const api = {
       return JSON.parse(stored);
     } else {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getFees`);
+        if (!res.ok) throw new Error("Failed to fetch fees");
         return await res.json();
     }
   },
 
   updateFeeConfig: async (config: FeeStructure): Promise<void> => {
+     await simulateNetwork(200);
      if (USE_MOCK_DATA) {
         const fees = await api.getFeesConfig();
         const idx = fees.findIndex(f => f.className === config.className);
@@ -160,7 +173,7 @@ export const api = {
 
   // --- PAYMENTS ---
   getPayments: async (): Promise<Payment[]> => {
-    await delay(300);
+    await simulateNetwork(300);
     if (USE_MOCK_DATA) {
       const stored = localStorage.getItem(LS_PAYMENTS);
       if (!stored) {
@@ -170,12 +183,13 @@ export const api = {
       return JSON.parse(stored);
     } else {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getPayments`);
+        if (!res.ok) throw new Error("Failed to fetch payments");
         return await res.json();
     }
   },
 
   recordPayment: async (payment: Payment, updatedStudent: Student): Promise<void> => {
-    await delay(500);
+    await simulateNetwork(500);
     if (USE_MOCK_DATA) {
       // 1. Save Payment
       const payments = await api.getPayments();
@@ -186,13 +200,14 @@ export const api = {
       await api.updateStudent(updatedStudent);
     } else {
         // For real API, we send both or handle transaction on server
-        await fetch(GOOGLE_SCRIPT_URL, {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             body: JSON.stringify({ 
                 action: 'recordPayment', 
                 data: { payment, student: updatedStudent } 
             })
         });
+        if (!res.ok) throw new Error("Failed to record payment");
     }
   }
 };

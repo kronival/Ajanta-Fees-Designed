@@ -7,6 +7,7 @@ import { Students } from './pages/Students';
 import { Payments } from './pages/Payments';
 import { Reports } from './pages/Reports';
 import { Admin } from './pages/Admin';
+import { ToastProvider } from './components/ToastContext';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -40,9 +41,11 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

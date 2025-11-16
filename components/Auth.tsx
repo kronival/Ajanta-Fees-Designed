@@ -11,8 +11,12 @@ export const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const success = await login(username, password);
-    if (!success) setError('Invalid credentials');
+    try {
+      const success = await login(username, password);
+      if (!success) setError('Invalid credentials');
+    } catch (e: any) {
+      setError(e.message || 'An error occurred during login');
+    }
   };
 
   return (

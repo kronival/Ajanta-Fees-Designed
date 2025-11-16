@@ -3,6 +3,7 @@ import { api } from '../services/api';
 import { Student, Payment, PaymentAllocation } from '../types';
 import { ACADEMIC_YEAR, CLASSES } from '../constants';
 import { useAuth } from '../components/AuthContext';
+import { useToast } from '../components/ToastContext';
 
 interface PaymentsProps {
   initialStudentId?: string | null;
@@ -10,6 +11,7 @@ interface PaymentsProps {
 
 export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [allPayments, setAllPayments] = useState<Payment[]>([]);
   
@@ -50,9 +52,13 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
   }, [initialStudentId, students]);
 
   const loadData = async () => {
-    const [sData, pData] = await Promise.all([api.getStudents(), api.getPayments()]);
-    setStudents(sData);
-    setAllPayments(pData);
+    try {
+      const [sData, pData] = await Promise.all([api.getStudents(), api.getPayments()]);
+      setStudents(sData);
+      setAllPayments(pData);
+    } catch (e: any) {
+      showToast(e.message || "Failed to load payment data", 'error');
+    }
   };
 
   const filteredStudentsForDropdown = students
@@ -111,7 +117,7 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
     
     const allocatedSum = Object.values(allocations).reduce((a: number, b: number) => a + b, 0);
     if (!isAutoAllocate && allocatedSum !== Number(amount)) {
-      alert(`Allocation (${allocatedSum}) must match Amount (${amount})`);
+      showToast(`Allocation (${allocatedSum}) must match Amount (${amount})`, 'error');
       return;
     }
 
@@ -151,8 +157,8 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
       setAmount('');
       setAllocations({});
       // Don't change view mode, let success modal handle next step
-    } catch (e) {
-      alert("Failed to record payment");
+    } catch (e: any) {
+      showToast(e.message || "Failed to record payment", 'error');
     }
   };
 
@@ -207,7 +213,7 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
                 className={`form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700 h-14 p-[15px] text-base font-normal leading-normal appearance-none ${
                   selectedClass 
                     ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-200 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/50' 
-                    : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 dark:text-zinc-500 cursor-not-allowed'
+                    : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 dark:text-zinc-50 cursor-not-allowed'
                 }`}
                 disabled={!selectedClass}
                 value={selectedStudentId}

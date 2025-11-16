@@ -4,6 +4,7 @@ import { Student, FeeStructure } from '../types';
 import { CLASSES, ACADEMIC_YEAR } from '../constants';
 import { Search, Plus, Filter, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
+import { useToast } from '../components/ToastContext';
 
 interface StudentsProps {
   onNavigate: (page: string, studentId?: string) => void;
@@ -11,6 +12,7 @@ interface StudentsProps {
 
 export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [feesConfig, setFeesConfig] = useState<FeeStructure[]>([]);
@@ -52,9 +54,13 @@ export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
   }, [search, classFilter, students]);
 
   const loadData = async () => {
-    const [sList, fList] = await Promise.all([api.getStudents(), api.getFeesConfig()]);
-    setStudents(sList);
-    setFeesConfig(fList);
+    try {
+      const [sList, fList] = await Promise.all([api.getStudents(), api.getFeesConfig()]);
+      setStudents(sList);
+      setFeesConfig(fList);
+    } catch (error: any) {
+      showToast(error.message || "Failed to load students", 'error');
+    }
   };
 
   const handleClassChange = (cls: string) => {
@@ -67,7 +73,7 @@ export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
   };
 
   const handleSave = async () => {
-    if (!formData.id || !formData.name || !formData.class) return alert("Required fields missing");
+    if (!formData.id || !formData.name || !formData.class) return showToast("Required fields missing", 'error');
     
     const studentPayload: Student = {
         ...formData as Student,
@@ -77,13 +83,15 @@ export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
     try {
       if (editingId) {
         await api.updateStudent(studentPayload);
+        showToast("Student updated successfully", 'success');
       } else {
         await api.addStudent(studentPayload);
+        showToast("Student added successfully", 'success');
       }
       setIsModalOpen(false);
       loadData();
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message || "Failed to save student", 'error');
     }
   };
 
@@ -93,9 +101,15 @@ export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
 
   const confirmDelete = async () => {
       if (deleteConfirm.studentId) {
-        await api.deleteStudent(deleteConfirm.studentId);
-        loadData();
-        setDeleteConfirm({ isOpen: false, studentId: null });
+        try {
+          await api.deleteStudent(deleteConfirm.studentId);
+          showToast("Student deleted successfully", 'success');
+          loadData();
+        } catch (error: any) {
+          showToast(error.message || "Failed to delete student", 'error');
+        } finally {
+          setDeleteConfirm({ isOpen: false, studentId: null });
+        }
       }
   };
 

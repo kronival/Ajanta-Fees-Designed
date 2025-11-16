@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { api } from '../services/api';
 import { Student, Payment } from '../types';
 import { useAuth } from '../components/AuthContext';
+import { useToast } from '../components/ToastContext';
 
 interface DashboardProps {
   onNavigate: (page: string, studentId?: string) => void;
@@ -9,6 +10,7 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,13 +19,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     const loadData = async () => {
-      const [sData, pData] = await Promise.all([api.getStudents(), api.getPayments()]);
-      setStudents(sData);
-      setPayments(pData);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const [sData, pData] = await Promise.all([api.getStudents(), api.getPayments()]);
+        setStudents(sData);
+        setPayments(pData);
+      } catch (err: any) {
+        showToast(err.message || "Failed to load dashboard data", 'error');
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
-  }, []);
+  }, [showToast]);
 
   // --- Calculations ---
   const totalOutstanding = useMemo(() => {
