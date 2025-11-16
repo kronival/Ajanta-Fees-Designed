@@ -1,0 +1,5 @@
+{
+  "name": "New Design SchoolFeeManager",
+  "description": "A comprehensive school fees management system with role-based access, Google Sheets integration, and print-ready receipts.",
+  "requestFramePermissions": []
+}

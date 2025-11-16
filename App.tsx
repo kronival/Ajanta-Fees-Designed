@@ -1,0 +1,43 @@
+import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './components/AuthContext';
+import { Layout } from './components/Layout';
+import { Login } from './components/Auth';
+import { Dashboard } from './pages/Dashboard';
+import { Students } from './pages/Students';
+import { Payments } from './pages/Payments';
+import { Reports } from './pages/Reports';
+import { Admin } from './pages/Admin';
+
+const AppContent: React.FC = () => {
+  const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState('dashboard');
+
+  if (!user) return <Login />;
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard': return <Dashboard />;
+      case 'students': return <Students />;
+      case 'payments': return <Payments />;
+      case 'reports': return <Reports />;
+      case 'admin': return <Admin />;
+      default: return <Dashboard />;
+    }
+  };
+
+  return (
+    <Layout activePage={currentPage} onNavigate={setCurrentPage}>
+      {renderPage()}
+    </Layout>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+export default App;
