@@ -76,19 +76,12 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
     ? allPayments.filter(p => p.studentId === selectedStudent.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     : [];
 
-  const handleStudentSelect = () => {
-    const s = students.find(st => st.id === selectedStudentId);
-    if (s) {
-      setSelectedStudent(s);
-      setViewMode('profile');
-    }
-  };
-
   const handleBack = () => {
     if (viewMode === 'payment') {
       setViewMode('profile');
     } else if (viewMode === 'profile') {
       setSelectedStudent(null);
+      setSelectedStudentId(''); // Clear selection when going back to search
       setViewMode('search');
     }
   };
@@ -218,7 +211,17 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
                 }`}
                 disabled={!selectedClass}
                 value={selectedStudentId}
-                onChange={(e) => setSelectedStudentId(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedStudentId(val);
+                  if (val) {
+                    const s = students.find(st => st.id === val);
+                    if (s) {
+                      setSelectedStudent(s);
+                      setViewMode('profile');
+                    }
+                  }
+                }}
               >
                 <option value="">Search by Name or Admission No.</option>
                 {filteredStudentsForDropdown.map(s => (
@@ -228,21 +231,8 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
             </label>
           </div>
         </main>
-
-        {/* Footer with CTA Button */}
-        <div className="sticky bottom-0 mt-auto w-full border-t border-zinc-200 dark:border-zinc-700 bg-white dark:bg-background-dark p-4">
-          <button 
-            onClick={handleStudentSelect}
-            disabled={!selectedStudentId}
-            className={`flex w-full min-w-[84px] items-center justify-center overflow-hidden rounded-lg h-14 px-5 text-base font-bold leading-normal tracking-[0.015em] transition-colors ${
-              selectedStudentId 
-                ? 'bg-primary text-white hover:bg-primary-dark cursor-pointer' 
-                : 'bg-zinc-300 dark:bg-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
-            }`}
-          >
-            <span className="truncate">{selectedStudentId ? 'Proceed to Profile' : 'Select a Student'}</span>
-          </button>
-        </div>
+        
+        {/* Footer Removed */}
       </div>
     );
   }
