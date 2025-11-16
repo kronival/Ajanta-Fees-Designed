@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Student, FeeStructure } from '../types';
 import { CLASSES, ACADEMIC_YEAR } from '../constants';
-import { Search, Plus, Filter, Edit2, Trash2, X, Save, Eye, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Filter, Edit2, Trash2, X, Save, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
 
 interface StudentsProps {
@@ -185,7 +185,12 @@ export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
                   <tr key={s.id} className="border-b border-slate-100 hover:bg-slate-50">
                     <td className="px-6 py-4 font-medium">{s.id}</td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-800">{s.name}</div>
+                      <div 
+                        onClick={() => onNavigate('payments', s.id)}
+                        className="font-medium text-blue-600 cursor-pointer hover:underline text-base"
+                      >
+                        {s.name}
+                      </div>
                       <div className="text-xs text-slate-400">F: {s.fatherName}</div>
                     </td>
                     <td className="px-6 py-4">
@@ -206,13 +211,6 @@ export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
-                      <button 
-                        onClick={() => onNavigate('payments', s.id)} 
-                        className="text-slate-500 hover:text-blue-600"
-                        title="View Profile"
-                      >
-                        <Eye size={16} />
-                      </button>
                       {user?.role !== 'parent' && (
                         <button onClick={() => openEdit(s)} className="text-blue-600 hover:text-blue-800">
                           <Edit2 size={16} />
