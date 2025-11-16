@@ -11,22 +11,28 @@ import { Admin } from './pages/Admin';
 const AppContent: React.FC = () => {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState('dashboard');
+  const [paymentStudentId, setPaymentStudentId] = useState<string | null>(null);
 
   if (!user) return <Login />;
 
+  const handleNavigate = (page: string, studentId?: string) => {
+    setCurrentPage(page);
+    setPaymentStudentId(studentId || null);
+  };
+
   const renderPage = () => {
     switch (currentPage) {
-      case 'dashboard': return <Dashboard />;
+      case 'dashboard': return <Dashboard onNavigate={handleNavigate} />;
       case 'students': return <Students />;
-      case 'payments': return <Payments />;
+      case 'payments': return <Payments initialStudentId={paymentStudentId} />;
       case 'reports': return <Reports />;
       case 'admin': return <Admin />;
-      default: return <Dashboard />;
+      default: return <Dashboard onNavigate={handleNavigate} />;
     }
   };
 
   return (
-    <Layout activePage={currentPage} onNavigate={setCurrentPage}>
+    <Layout activePage={currentPage} onNavigate={(page) => handleNavigate(page)}>
       {renderPage()}
     </Layout>
   );

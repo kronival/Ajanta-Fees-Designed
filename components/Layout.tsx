@@ -36,8 +36,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate
     );
   };
 
-  // Dashboard uses a full-width custom design
-  const isDashboard = activePage === 'dashboard';
+  // Pages that use a full-width custom design
+  const isFullScreenPage = ['dashboard', 'payments'].includes(activePage);
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark flex font-display">
@@ -105,8 +105,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto h-screen bg-background-light dark:bg-background-dark relative">
-        {/* Mobile Header - Hide on dashboard to let dashboard's own header take over */}
-        {!isDashboard && (
+        {/* Mobile Header - Hide on full screen pages to let them handle their own headers */}
+        {!isFullScreenPage && (
           <header className="bg-white dark:bg-gray-900 border-b border-border-color p-4 md:hidden flex items-center justify-between sticky top-0 z-40">
             <button onClick={() => setSidebarOpen(true)} className="text-text-main dark:text-white">
               <Menu />
@@ -116,8 +116,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate
           </header>
         )}
         
-        {/* Conditionally remove padding for full-width pages like Dashboard */}
-        <div className={`mx-auto h-full ${isDashboard ? '' : 'p-4 md:p-8 max-w-7xl space-y-6'}`}>
+        {/* Conditionally remove padding for full-width pages */}
+        <div className={`mx-auto h-full ${isFullScreenPage ? '' : 'p-4 md:p-8 max-w-7xl space-y-6'}`}>
           {children}
         </div>
       </main>

@@ -3,7 +3,11 @@ import { api } from '../services/api';
 import { Student, Payment } from '../types';
 import { useAuth } from '../components/AuthContext';
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onNavigate: (page: string, studentId?: string) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -164,9 +168,12 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="text-right">
                 <p className="text-lg font-bold text-red-600 dark:text-red-400">₹{student.totalDue.toLocaleString()}</p>
-                <button className="mt-2 flex h-8 items-center justify-center gap-x-2 rounded-lg bg-primary/20 dark:bg-primary/30 px-3 text-sm font-medium text-primary dark:text-blue-300 hover:bg-primary/30 transition-colors">
-                  <span className="material-symbols-outlined text-base">notifications</span>
-                  <span>Remind</span>
+                <button 
+                  onClick={() => onNavigate('payments', student.id)}
+                  className="mt-2 flex h-8 items-center justify-center gap-x-2 rounded-lg bg-primary/20 dark:bg-primary/30 px-3 text-sm font-medium text-primary dark:text-blue-300 hover:bg-primary/30 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">credit_card</span>
+                  <span>Pay Fees</span>
                 </button>
               </div>
             </div>
@@ -186,15 +193,24 @@ export const Dashboard: React.FC = () => {
             <span className="material-symbols-outlined">dashboard</span>
             <span className="text-xs font-medium">Dashboard</span>
           </button>
-          <button className="flex flex-1 flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:text-primary">
+          <button 
+            onClick={() => onNavigate('students')}
+            className="flex flex-1 flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:text-primary"
+          >
             <span className="material-symbols-outlined">group</span>
-            <span className="text-xs font-medium">Users</span>
+            <span className="text-xs font-medium">Students</span>
           </button>
-          <button className="flex flex-1 flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:text-primary">
+          <button 
+            onClick={() => onNavigate('payments')}
+            className="flex flex-1 flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:text-primary"
+          >
             <span className="material-symbols-outlined">receipt_long</span>
-            <span className="text-xs font-medium">Fee Config</span>
+            <span className="text-xs font-medium">Fees</span>
           </button>
-          <button className="flex flex-1 flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:text-primary">
+          <button 
+            onClick={() => onNavigate('reports')}
+            className="flex flex-1 flex-col items-center justify-center gap-1 text-gray-500 dark:text-gray-400 hover:text-primary"
+          >
             <span className="material-symbols-outlined">analytics</span>
             <span className="text-xs font-medium">Reports</span>
           </button>

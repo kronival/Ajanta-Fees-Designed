@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Student, Payment, PaymentAllocation } from '../types';
-import { ACADEMIC_YEAR } from '../constants';
+import { ACADEMIC_YEAR, CLASSES } from '../constants';
 import { useAuth } from '../components/AuthContext';
 
-export const Payments: React.FC = () => {
+interface PaymentsProps {
+  initialStudentId?: string | null;
+}
+
+export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [allPayments, setAllPayments] = useState<Payment[]>([]);
@@ -14,7 +18,10 @@ export const Payments: React.FC = () => {
   
   // Selection State
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  // New Search/Selection State
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('');
 
   // Payment Form State
   const [amount, setAmount] = useState<string>('');
@@ -30,16 +37,27 @@ export const Payments: React.FC = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (initialStudentId && students.length > 0) {
+      const s = students.find(st => st.id === initialStudentId);
+      if (s) {
+        setSelectedStudentId(s.id);
+        setSelectedClass(s.class);
+        setSelectedStudent(s);
+        setViewMode('profile');
+      }
+    }
+  }, [initialStudentId, students]);
+
   const loadData = async () => {
     const [sData, pData] = await Promise.all([api.getStudents(), api.getPayments()]);
     setStudents(sData);
     setAllPayments(pData);
   };
 
-  const filteredStudents = students.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    s.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStudentsForDropdown = students
+    .filter(s => !selectedClass || s.class === selectedClass)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   // --- Data Helpers ---
   const getDues = (s: Student) => {
@@ -58,10 +76,12 @@ export const Payments: React.FC = () => {
     ? allPayments.filter(p => p.studentId === selectedStudent.id).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     : [];
 
-  const handleStudentSelect = (s: Student) => {
-    setSelectedStudent(s);
-    setSearchQuery('');
-    setViewMode('profile');
+  const handleStudentSelect = () => {
+    const s = students.find(st => st.id === selectedStudentId);
+    if (s) {
+      setSelectedStudent(s);
+      setViewMode('profile');
+    }
   };
 
   const handleBack = () => {
@@ -147,45 +167,82 @@ export const Payments: React.FC = () => {
 
   if (viewMode === 'search' || !selectedStudent) {
     return (
-      <div className="max-w-xl mx-auto mt-10 font-display">
-         <div className="bg-white dark:bg-background-dark p-6 rounded-xl shadow-sm border border-border-color">
-            <h2 className="text-2xl font-bold text-text-main dark:text-white mb-6">Find Student</h2>
-            <div className="relative mb-6">
-                <span className="material-symbols-outlined absolute left-4 top-3.5 text-text-secondary">search</span>
-                <input 
-                    autoFocus
-                    type="text"
-                    className="w-full h-14 pl-12 pr-4 rounded-lg border border-border-color bg-background-light dark:bg-gray-800 text-text-main dark:text-white focus:border-primary focus:ring-primary outline-none"
-                    placeholder="Search by name or admission no..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                />
-            </div>
-            <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-                {searchQuery && filteredStudents.map(s => (
-                    <button 
-                        key={s.id}
-                        onClick={() => handleStudentSelect(s)}
-                        className="w-full text-left p-4 rounded-lg hover:bg-background-light dark:hover:bg-gray-800 border border-transparent hover:border-border-color transition-all flex justify-between items-center group"
-                    >
-                        <div>
-                            <p className="font-bold text-text-main dark:text-white">{s.name}</p>
-                            <p className="text-sm text-text-secondary">Class {s.class} • {s.id}</p>
-                        </div>
-                        <span className="material-symbols-outlined text-text-secondary group-hover:text-primary">arrow_forward_ios</span>
-                    </button>
+      <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden font-display">
+        {/* Top App Bar */}
+        <div className="flex items-center justify-between bg-white dark:bg-background-dark p-4 shadow-sm">
+          <div className="flex size-12 shrink-0 items-center justify-start text-zinc-900 dark:text-zinc-50">
+            <span className="material-symbols-outlined text-2xl opacity-50">arrow_back</span>
+          </div>
+          <h1 className="flex-1 text-lg font-bold text-zinc-900 dark:text-zinc-50 text-center">Student Fee Payment</h1>
+          <div className="flex size-12 items-center justify-end">
+            <button className="h-12 min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-transparent p-0 text-zinc-900 dark:text-zinc-50">
+              <span className="material-symbols-outlined text-2xl">support_agent</span>
+            </button>
+          </div>
+        </div>
+
+        <main className="flex-1 flex flex-col p-4">
+          {/* Body Text */}
+          <p className="text-zinc-700 dark:text-zinc-300 text-base font-normal leading-normal pb-4 pt-1">
+            Please select a class and then find the student to proceed with the fee payment.
+          </p>
+
+          {/* Form Fields */}
+          <div className="space-y-6">
+            {/* Select Class Dropdown */}
+            <label className="flex flex-col w-full">
+              <p className="text-zinc-900 dark:text-zinc-50 text-base font-medium leading-normal pb-2">Select Class</p>
+              <select 
+                className="form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-zinc-900 dark:text-zinc-200 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:border-primary dark:focus:border-primary h-14 placeholder:text-zinc-500 p-[15px] text-base font-normal leading-normal appearance-none"
+                value={selectedClass}
+                onChange={(e) => {
+                  setSelectedClass(e.target.value);
+                  setSelectedStudentId('');
+                }}
+              >
+                <option disabled value="">Choose a class (e.g., 5th)</option>
+                {CLASSES.map(c => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
-                {searchQuery && filteredStudents.length === 0 && (
-                    <p className="text-center text-text-secondary py-4">No students found</p>
-                )}
-                 {!searchQuery && (
-                    <div className="text-center text-text-secondary py-10 flex flex-col items-center">
-                         <span className="material-symbols-outlined text-4xl mb-2 opacity-50">person_search</span>
-                         <p>Start typing to search for a student</p>
-                    </div>
-                )}
-            </div>
-         </div>
+              </select>
+            </label>
+
+            {/* Find Student Dropdown */}
+            <label className="flex flex-col w-full">
+              <p className="text-zinc-400 dark:text-zinc-500 text-base font-medium leading-normal pb-2">Find Student</p>
+              <select 
+                className={`form-select flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700 h-14 p-[15px] text-base font-normal leading-normal appearance-none ${
+                  selectedClass 
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-200 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/50' 
+                    : 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 dark:text-zinc-500 cursor-not-allowed'
+                }`}
+                disabled={!selectedClass}
+                value={selectedStudentId}
+                onChange={(e) => setSelectedStudentId(e.target.value)}
+              >
+                <option value="">Search by Name or Admission No.</option>
+                {filteredStudentsForDropdown.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} ({s.id})</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </main>
+
+        {/* Footer with CTA Button */}
+        <div className="sticky bottom-0 mt-auto w-full border-t border-zinc-200 dark:border-zinc-700 bg-white dark:bg-background-dark p-4">
+          <button 
+            onClick={handleStudentSelect}
+            disabled={!selectedStudentId}
+            className={`flex w-full min-w-[84px] items-center justify-center overflow-hidden rounded-lg h-14 px-5 text-base font-bold leading-normal tracking-[0.015em] transition-colors ${
+              selectedStudentId 
+                ? 'bg-primary text-white hover:bg-primary-dark cursor-pointer' 
+                : 'bg-zinc-300 dark:bg-zinc-600 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+            }`}
+          >
+            <span className="truncate">{selectedStudentId ? 'Proceed to Profile' : 'Select a Student'}</span>
+          </button>
+        </div>
       </div>
     );
   }
