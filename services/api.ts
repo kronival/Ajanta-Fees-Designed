@@ -10,20 +10,65 @@ const GOOGLE_SCRIPT_URL = "YOUR_DEPLOYED_WEB_APP_URL_HERE";
 const LS_STUDENTS = 'sfm_students';
 const LS_FEES = 'sfm_fees';
 const LS_PAYMENTS = 'sfm_payments';
+const LS_USERS = 'sfm_users';
 
 // Helper to simulate network delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const getLocalUsers = (): User[] => {
+  const stored = localStorage.getItem(LS_USERS);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(LS_USERS, JSON.stringify(MOCK_USERS));
+  return MOCK_USERS;
+};
 
 export const api = {
   // --- USERS ---
   login: async (username: string, pass: string): Promise<User | null> => {
     await delay(500);
-    const user = MOCK_USERS.find(u => u.username === username && u.password === pass);
+    const users = getLocalUsers();
+    const user = users.find(u => u.username === username && u.password === pass);
     if (user) {
         const { password, ...safeUser } = user;
         return safeUser;
     }
     return null;
+  },
+
+  getUsers: async (): Promise<User[]> => {
+    await delay(300);
+    return getLocalUsers();
+  },
+
+  saveUser: async (user: User): Promise<void> => {
+    await delay(300);
+    const users = getLocalUsers();
+    
+    if (user.id) {
+        // Update
+        const index = users.findIndex(u => u.id === user.id);
+        if (index !== -1) {
+            // If password is provided, update it, else keep old
+            const existing = users[index];
+            users[index] = { ...existing, ...user, password: user.password || existing.password };
+        }
+    } else {
+        // Create
+        if (users.find(u => u.username === user.username)) {
+            throw new Error("Username already exists");
+        }
+        user.id = 'u_' + Date.now();
+        users.push(user);
+    }
+    localStorage.setItem(LS_USERS, JSON.stringify(users));
+  },
+
+  deleteUser: async (id: string): Promise<void> => {
+      await delay(300);
+      const users = getLocalUsers();
+      const filtered = users.filter(u => u.id !== id);
+      if (filtered.length === users.length) return; // No change
+      localStorage.setItem(LS_USERS, JSON.stringify(filtered));
   },
 
   // --- STUDENTS ---

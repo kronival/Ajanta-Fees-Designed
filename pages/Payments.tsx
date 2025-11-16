@@ -269,27 +269,35 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm">
             <h3 className="text-text-main dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-6 pb-2 pt-5">Personal Details</h3>
             <div className="p-6 pt-4 grid grid-cols-1">
-              <div className="flex items-center gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
-                <span className="material-symbols-outlined text-primary">person</span>
-                <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal w-1/3">Father's Name</p>
-                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-right flex-1">{selectedStudent.fatherName}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
+                <div className="flex items-center gap-4 w-full sm:w-1/3">
+                    <span className="material-symbols-outlined text-primary">person</span>
+                    <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">Father's Name</p>
+                </div>
+                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-left pl-10 sm:pl-0 sm:text-right flex-1">{selectedStudent.fatherName}</p>
               </div>
-              <div className="flex items-center gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
-                <span className="material-symbols-outlined text-primary">person</span>
-                <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal w-1/3">Mother's Name</p>
-                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-right flex-1">{selectedStudent.motherName}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
+                <div className="flex items-center gap-4 w-full sm:w-1/3">
+                    <span className="material-symbols-outlined text-primary">person</span>
+                    <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">Mother's Name</p>
+                </div>
+                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-left pl-10 sm:pl-0 sm:text-right flex-1">{selectedStudent.motherName}</p>
               </div>
-              <div className="flex items-center gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
-                <span className="material-symbols-outlined text-primary">cake</span>
-                <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal w-1/3">Date of Birth</p>
-                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-right flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
+                <div className="flex items-center gap-4 w-full sm:w-1/3">
+                    <span className="material-symbols-outlined text-primary">cake</span>
+                    <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">Date of Birth</p>
+                </div>
+                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-left pl-10 sm:pl-0 sm:text-right flex-1">
                     {new Date(selectedStudent.dob).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
               </div>
-              <div className="flex items-center gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
-                <span className="material-symbols-outlined text-primary">badge</span>
-                <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal w-1/3">Admission No.</p>
-                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-right flex-1">{selectedStudent.id}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 border-t border-t-border-color dark:border-t-gray-800 py-4">
+                <div className="flex items-center gap-4 w-full sm:w-1/3">
+                    <span className="material-symbols-outlined text-primary">badge</span>
+                    <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">Admission No.</p>
+                </div>
+                <p className="text-text-main dark:text-white text-sm font-semibold leading-normal text-left pl-10 sm:pl-0 sm:text-right flex-1">{selectedStudent.id}</p>
               </div>
             </div>
           </div>

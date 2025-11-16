@@ -23,7 +23,7 @@ const AppContent: React.FC = () => {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard': return <Dashboard onNavigate={handleNavigate} />;
-      case 'students': return <Students />;
+      case 'students': return <Students onNavigate={handleNavigate} />;
       case 'payments': return <Payments initialStudentId={paymentStudentId} />;
       case 'reports': return <Reports />;
       case 'admin': return <Admin />;

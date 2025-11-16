@@ -148,7 +148,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                     : 'bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200'
                 }`}
               >
-                <p className="text-sm font-medium leading-normal">{chip}</p>
+                <p className="text-sm font-medium leading-normal whitespace-nowrap">{chip}</p>
               </button>
             );
           })}
@@ -160,17 +160,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
         {/* Student Dues List */}
         <div className="flex flex-col gap-3 px-4">
           {filteredList.map(student => (
-            <div key={student.id} className="flex items-center gap-4 rounded-xl bg-white dark:bg-slate-800 p-4 border border-gray-200 dark:border-slate-700">
+            <div key={student.id} className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl bg-white dark:bg-slate-800 p-4 border border-gray-200 dark:border-slate-700 shadow-sm">
               <div className="flex-1">
                 <p className="text-base font-semibold text-gray-900 dark:text-white">{student.name}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Class {student.class} • {student.id}</p>
                 <p className="text-sm text-red-600 dark:text-red-400 mt-1 font-medium">Status: {student.dueDateStr}</p>
               </div>
-              <div className="text-right">
+              
+              <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 dark:border-gray-700">
                 <p className="text-lg font-bold text-red-600 dark:text-red-400">₹{student.totalDue.toLocaleString()}</p>
                 <button 
                   onClick={() => onNavigate('payments', student.id)}
-                  className="mt-2 flex h-8 items-center justify-center gap-x-2 rounded-lg bg-primary/20 dark:bg-primary/30 px-3 text-sm font-medium text-primary dark:text-blue-300 hover:bg-primary/30 transition-colors"
+                  className="sm:mt-2 flex h-8 items-center justify-center gap-x-2 rounded-lg bg-primary/20 dark:bg-primary/30 px-3 text-sm font-medium text-primary dark:text-blue-300 hover:bg-primary/30 transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">credit_card</span>
                   <span>Pay Fees</span>
@@ -187,7 +188,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       </main>
 
       {/* Bottom Navigation Bar - Visible only on mobile/small screens where sidebar is hidden */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 md:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
         <div className="flex h-16 justify-around">
           <button className="flex flex-1 flex-col items-center justify-center gap-1 text-primary">
             <span className="material-symbols-outlined">dashboard</span>

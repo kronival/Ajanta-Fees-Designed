@@ -41,11 +41,19 @@ export const Layout: React.FC<LayoutProps> = ({ children, activePage, onNavigate
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark flex font-display">
+      {/* Mobile Sidebar Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 md:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-border-color transform transition-transform duration-200 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0
+        md:relative md:translate-x-0 shadow-xl md:shadow-none
       `}>
         <div className="p-8 border-b border-border-color flex justify-between items-center">
           <h1 className="text-2xl font-bold text-primary flex items-center gap-2 tracking-tight">

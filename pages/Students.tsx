@@ -2,10 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
 import { Student, FeeStructure } from '../types';
 import { CLASSES, ACADEMIC_YEAR } from '../constants';
-import { Search, Plus, Filter, Edit2, Trash2, X, Save } from 'lucide-react';
+import { Search, Plus, Filter, Edit2, Trash2, X, Save, Eye, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
 
-export const Students: React.FC = () => {
+interface StudentsProps {
+  onNavigate: (page: string, studentId?: string) => void;
+}
+
+export const Students: React.FC<StudentsProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
@@ -14,6 +18,12 @@ export const Students: React.FC = () => {
   const [classFilter, setClassFilter] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // Delete Confirmation State
+  const [deleteConfirm, setDeleteConfirm] = useState<{isOpen: boolean, studentId: string | null}>({
+      isOpen: false,
+      studentId: null
+  });
 
   // Form State
   const initialForm: Partial<Student> = {
@@ -77,10 +87,16 @@ export const Students: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-      if (!window.confirm("Are you sure? This will permanently delete the student record.")) return;
-      await api.deleteStudent(id);
-      loadData();
+  const promptDelete = (id: string) => {
+      setDeleteConfirm({ isOpen: true, studentId: id });
+  };
+
+  const confirmDelete = async () => {
+      if (deleteConfirm.studentId) {
+        await api.deleteStudent(deleteConfirm.studentId);
+        loadData();
+        setDeleteConfirm({ isOpen: false, studentId: null });
+      }
   };
 
   const openEdit = (s: Student) => {
@@ -190,13 +206,20 @@ export const Students: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
+                      <button 
+                        onClick={() => onNavigate('payments', s.id)} 
+                        className="text-slate-500 hover:text-blue-600"
+                        title="View Profile"
+                      >
+                        <Eye size={16} />
+                      </button>
                       {user?.role !== 'parent' && (
                         <button onClick={() => openEdit(s)} className="text-blue-600 hover:text-blue-800">
                           <Edit2 size={16} />
                         </button>
                       )}
                        {user?.role === 'admin' && (
-                        <button onClick={() => handleDelete(s.id)} className="text-red-600 hover:text-red-800">
+                        <button onClick={() => promptDelete(s.id)} className="text-red-600 hover:text-red-800">
                           <Trash2 size={16} />
                         </button>
                       )}
@@ -214,7 +237,36 @@ export const Students: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm.isOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[60]">
+              <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 animate-in zoom-in-95 duration-200">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto mb-4">
+                      <AlertTriangle size={24} />
+                  </div>
+                  <h3 className="text-lg font-bold text-center text-slate-900 mb-2">Delete Student Record?</h3>
+                  <p className="text-center text-slate-500 text-sm mb-6">
+                      Are you sure you want to delete this student? This action cannot be undone and all fee history will be lost.
+                  </p>
+                  <div className="flex gap-3">
+                      <button 
+                        onClick={() => setDeleteConfirm({isOpen: false, studentId: null})}
+                        className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors"
+                      >
+                          Cancel
+                      </button>
+                      <button 
+                        onClick={confirmDelete}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                          Delete
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Edit/Add Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
