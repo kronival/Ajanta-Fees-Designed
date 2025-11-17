@@ -7,9 +7,10 @@ import { useToast } from '../components/ToastContext';
 
 interface PaymentsProps {
   initialStudentId?: string | null;
+  onNavigate: (page: string, studentId?: string) => void;
 }
 
-export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
+export const Payments: React.FC<PaymentsProps> = ({ initialStudentId, onNavigate }) => {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
@@ -169,9 +170,12 @@ export const Payments: React.FC<PaymentsProps> = ({ initialStudentId }) => {
       <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden font-display">
         {/* Top App Bar */}
         <div className="flex items-center justify-between bg-white dark:bg-background-dark p-4 shadow-sm">
-          <div className="flex size-12 shrink-0 items-center justify-start text-zinc-900 dark:text-zinc-50">
-            <span className="material-symbols-outlined text-2xl opacity-50">arrow_back</span>
-          </div>
+          <button 
+            onClick={() => onNavigate('dashboard')}
+            className="flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-900 dark:text-zinc-50 -ml-2 transition-colors"
+          >
+            <span className="material-symbols-outlined text-2xl">arrow_back</span>
+          </button>
           <h1 className="flex-1 text-lg font-bold text-zinc-900 dark:text-zinc-50 text-center">Student Fee Payment</h1>
           <div className="flex size-12 items-center justify-end">
             <button className="h-12 min-w-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-transparent p-0 text-zinc-900 dark:text-zinc-50">
